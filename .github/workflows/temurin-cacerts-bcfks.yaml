@@ -40,7 +40,7 @@ jobs:
         with:
           lts: ${{ matrix.lts }}
           mode: 'check-and-generate'
-          repository: 'ideascale/temurin-cacerts-bcfks'
+          repository: 'ideascale-public/temurin-cacerts-bcfks'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Workflow summary
