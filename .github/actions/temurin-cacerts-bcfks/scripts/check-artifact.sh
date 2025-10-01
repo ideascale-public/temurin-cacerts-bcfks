@@ -2,7 +2,7 @@
 # Check if cacerts.bcfks artifact exists in GHCR
 #
 # Usage: check-artifact.sh <artifact-ref>
-#   artifact-ref: Full OCI reference (e.g., ghcr.io/ideascale/temurin-cacerts-bcfks:21.0.8-9)
+#   artifact-ref: Full OCI reference (e.g., ghcr.io/ideascale-public/temurin-cacerts-bcfks:21.0.8-9)
 #
 # Returns:
 #   0 if artifact exists

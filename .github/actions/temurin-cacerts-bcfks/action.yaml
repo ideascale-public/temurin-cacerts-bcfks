@@ -27,7 +27,7 @@ outputs:
     description: 'Whether artifact already exists in GHCR (true/false)'
     value: ${{ steps.check.outputs.exists }}
   artifact-ref:
-    description: 'Full OCI reference (e.g., ghcr.io/ideascale/temurin-cacerts-bcfks:21.0.8-9)'
+    description: 'Full OCI reference (e.g., ghcr.io/ideascale-public/temurin-cacerts-bcfks:21.0.8-9)'
     value: ${{ steps.resolve.outputs.artifact-ref }}
   temurin-version:
     description: 'Resolved Temurin version (e.g., 21.0.8+9)'

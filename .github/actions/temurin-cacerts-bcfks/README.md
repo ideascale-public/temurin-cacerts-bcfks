@@ -12,7 +12,7 @@ Download the artifact for your Temurin version:
 
 ```bash
 # Example: Download cacerts for Temurin 21.0.8+9
-crane export ghcr.io/ideascale/temurin-cacerts-bcfks:21.0.8-9 - | tar -xzf - cacerts.bcfks
+crane export ghcr.io/ideascale-public/temurin-cacerts-bcfks:21.0.8-9 - | tar -xzf - cacerts.bcfks
 ```
 
 ## Available Versions
@@ -52,7 +52,7 @@ Automatically updated daily.
 | Output | Description |
 |--------|-------------|
 | `artifact-exists` | Whether artifact already exists (`true`/`false`) |
-| `artifact-ref` | Full OCI reference (e.g., `ghcr.io/ideascale/temurin-cacerts-bcfks:21.0.8-9`) |
+| `artifact-ref` | Full OCI reference (e.g., `ghcr.io/ideascale-public/temurin-cacerts-bcfks:21.0.8-9`) |
 | `temurin-version` | Resolved Temurin version (e.g., `21.0.8+9`) |
 | `generated` | Whether a new artifact was generated (`true`/`false`) |
 
@@ -64,7 +64,7 @@ Automatically updated daily.
 
 ### 2. Check GHCR
 - Uses `crane manifest` to check if `cacerts.bcfks` already exists
-- Tag format: `ghcr.io/ideascale/temurin-cacerts-bcfks:21.0.8-9`
+- Tag format: `ghcr.io/ideascale-public/temurin-cacerts-bcfks:21.0.8-9`
 - No authentication needed (public repository)
 
 ### 3. Generate (if not found)
@@ -122,7 +122,7 @@ jobs:
 
 ```bash
 # In convert-cacerts-fips.sh
-ARTIFACT_REF="ghcr.io/ideascale/temurin-cacerts-bcfks:${TEMURIN_VERSION_TAG}"
+ARTIFACT_REF="ghcr.io/ideascale-public/temurin-cacerts-bcfks:${TEMURIN_VERSION_TAG}"
 
 if crane export "$ARTIFACT_REF" - | tar -xzf - cacerts.bcfks; then
   echo "✅ Downloaded pre-built cacerts.bcfks from GHCR"
@@ -157,7 +157,7 @@ This makes artifacts downloadable without authentication.
 
 Check if the artifact exists:
 ```bash
-crane manifest ghcr.io/ideascale/temurin-cacerts-bcfks:21.0.8-9
+crane manifest ghcr.io/ideascale-public/temurin-cacerts-bcfks:21.0.8-9
 ```
 
 ### Generation Fails

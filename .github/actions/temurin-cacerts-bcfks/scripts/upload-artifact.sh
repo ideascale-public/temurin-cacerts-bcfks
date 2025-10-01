@@ -2,7 +2,7 @@
 # Upload cacerts.bcfks to GHCR as OCI artifact
 #
 # Usage: upload-artifact.sh <artifact-ref> <version> <version-tag>
-#   artifact-ref: Full OCI reference (e.g., ghcr.io/ideascale/temurin-cacerts-bcfks:21.0.8-9)
+#   artifact-ref: Full OCI reference (e.g., ghcr.io/ideascale-public/temurin-cacerts-bcfks:21.0.8-9)
 #   version: Full Temurin version (e.g., 21.0.8+9)
 #   version-tag: Version with - instead of + (e.g., 21.0.8-9)
 #
