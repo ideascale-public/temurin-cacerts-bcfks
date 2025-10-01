@@ -1,0 +1,112 @@
+name: Temurin FIPS Cacerts (BCFKS) Generator
+description: Pre-generate and cache reproducible FIPS cacerts.bcfks artifacts in GHCR
+author: IdeaScale
+
+inputs:
+  lts:
+    description: 'Temurin LTS major version (21, 25)'
+    required: true
+  mode:
+    description: 'Operation mode: check-only or check-and-generate'
+    required: false
+    default: 'check-and-generate'
+  registry:
+    description: 'OCI registry host'
+    required: false
+    default: 'ghcr.io'
+  repository:
+    description: 'OCI repository path (namespace/name)'
+    required: false
+    default: 'ideascale/temurin-cacerts-bcfks'
+  github-token:
+    description: 'GitHub token for GHCR authentication (upload only)'
+    required: true
+
+outputs:
+  artifact-exists:
+    description: 'Whether artifact already exists in GHCR (true/false)'
+    value: ${{ steps.check.outputs.exists }}
+  artifact-ref:
+    description: 'Full OCI reference (e.g., ghcr.io/ideascale/temurin-cacerts-bcfks:21.0.8-9)'
+    value: ${{ steps.resolve.outputs.artifact-ref }}
+  temurin-version:
+    description: 'Resolved Temurin version (e.g., 21.0.8+9)'
+    value: ${{ steps.resolve.outputs.version }}
+  generated:
+    description: 'Whether a new artifact was generated and uploaded (true/false)'
+    value: ${{ steps.upload.outputs.uploaded }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: |
+        # Install crane for OCI operations
+        if ! command -v crane &>/dev/null; then
+          echo "Installing crane..."
+          curl -fsSL https://github.com/google/go-containerregistry/releases/download/v0.20.2/go-containerregistry_Linux_x86_64.tar.gz | \
+            sudo tar -xzC /usr/local/bin crane
+        fi
+
+        # Verify jq is available
+        if ! command -v jq &>/dev/null; then
+          sudo apt-get update && sudo apt-get install -y jq
+        fi
+
+    - name: Resolve Temurin version
+      id: resolve
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        chmod +x scripts/resolve-temurin.sh
+        ./scripts/resolve-temurin.sh "${{ inputs.lts }}" "${{ inputs.registry }}" "${{ inputs.repository }}"
+
+    - name: Check if artifact exists
+      id: check
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        chmod +x scripts/check-artifact.sh
+        if ./scripts/check-artifact.sh "${{ steps.resolve.outputs.artifact-ref }}"; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+          echo "✅ Artifact already exists: ${{ steps.resolve.outputs.artifact-ref }}"
+        else
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+          echo "⚠️  Artifact not found: ${{ steps.resolve.outputs.artifact-ref }}"
+        fi
+
+    - name: Generate cacerts.bcfks
+      id: generate
+      if: steps.check.outputs.exists == 'false' && inputs.mode == 'check-and-generate'
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        chmod +x scripts/generate-cacerts.sh
+        ./scripts/generate-cacerts.sh "${{ steps.resolve.outputs.download-url }}"
+
+    - name: Upload to GHCR
+      id: upload
+      if: steps.check.outputs.exists == 'false' && inputs.mode == 'check-and-generate'
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        chmod +x scripts/upload-artifact.sh
+        ./scripts/upload-artifact.sh \
+          "${{ steps.resolve.outputs.artifact-ref }}" \
+          "${{ steps.resolve.outputs.version }}" \
+          "${{ steps.resolve.outputs.version-tag }}"
+        echo "uploaded=true" >> "$GITHUB_OUTPUT"
+
+    - name: Summary
+      shell: bash
+      if: always()
+      run: |
+        echo "## Temurin ${{ inputs.lts }} FIPS Cacerts" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "- **Temurin Version**: ${{ steps.resolve.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+        echo "- **Artifact Reference**: ${{ steps.resolve.outputs.artifact-ref }}" >> "$GITHUB_STEP_SUMMARY"
+        echo "- **Already Exists**: ${{ steps.check.outputs.exists }}" >> "$GITHUB_STEP_SUMMARY"
+        echo "- **Generated**: ${{ steps.upload.outputs.uploaded || 'false' }}" >> "$GITHUB_STEP_SUMMARY"

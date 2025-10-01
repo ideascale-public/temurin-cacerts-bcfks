@@ -1,0 +1,71 @@
+name: Pre-generate FIPS Cacerts (BCFKS)
+
+on:
+  # Run daily at 00:00 UTC to ensure latest Temurin versions have pre-generated cacerts
+  schedule:
+    - cron: '0 0 * * *'
+
+  # Manual trigger (always runs for both LTS 21 and 25)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: temurin-cacerts-bcfks
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  generate-cacerts:
+    name: Generate cacerts for Temurin ${{ matrix.lts }}
+    strategy:
+      fail-fast: false
+      matrix:
+        lts: [21, 25]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Generate and upload cacerts.bcfks
+        id: cacerts
+        uses: ./.github/actions/temurin-cacerts-bcfks
+        with:
+          lts: ${{ matrix.lts }}
+          mode: 'check-and-generate'
+          repository: 'ideascale/temurin-cacerts-bcfks'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Workflow summary
+        if: always()
+        run: |
+          {
+            echo "## Temurin ${{ matrix.lts }} FIPS Cacerts"
+            echo ""
+            echo "| Property | Value |"
+            echo "|----------|-------|"
+            echo "| Temurin Version | \`${{ steps.cacerts.outputs.temurin-version }}\` |"
+            echo "| Artifact | \`${{ steps.cacerts.outputs.artifact-ref }}\` |"
+            echo "| Already Exists | ${{ steps.cacerts.outputs.artifact-exists }} |"
+            echo "| Generated New | ${{ steps.cacerts.outputs.generated || 'false' }} |"
+            echo ""
+
+            if [[ "${{ steps.cacerts.outputs.generated }}" == "true" ]]; then
+              echo "✅ **New artifact generated and uploaded**"
+              echo ""
+              echo "**Next steps:**"
+              echo "1. Go to [Package Settings](https://github.com/orgs/IdeaScale/packages/container/temurin-cacerts-bcfks/settings)"
+              echo "2. Change visibility to **Public** (one-time setup)"
+            elif [[ "${{ steps.cacerts.outputs.artifact-exists }}" == "true" ]]; then
+              echo "ℹ️ Artifact already exists, no action needed"
+            else
+              echo "⚠️ Mode was check-only, artifact not found but not generated"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
