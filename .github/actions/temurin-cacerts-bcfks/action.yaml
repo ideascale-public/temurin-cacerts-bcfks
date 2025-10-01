@@ -17,7 +17,7 @@ inputs:
   repository:
     description: 'OCI repository path (namespace/name)'
     required: false
-    default: 'ideascale/temurin-cacerts-bcfks'
+    default: 'ideascale-public/temurin-cacerts-bcfks'
   github-token:
     description: 'GitHub token for GHCR authentication (upload only)'
     required: true
