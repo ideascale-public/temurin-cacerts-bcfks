@@ -59,10 +59,6 @@ jobs:
 
             if [[ "${{ steps.cacerts.outputs.generated }}" == "true" ]]; then
               echo "✅ **New artifact generated and uploaded**"
-              echo ""
-              echo "**Next steps:**"
-              echo "1. Go to [Package Settings](https://github.com/orgs/IdeaScale/packages/container/temurin-cacerts-bcfks/settings)"
-              echo "2. Change visibility to **Public** (one-time setup)"
             elif [[ "${{ steps.cacerts.outputs.artifact-exists }}" == "true" ]]; then
               echo "ℹ️ Artifact already exists, no action needed"
             else
